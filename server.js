@@ -173,6 +173,36 @@ async function main() {
     }
 }
 
+function eventToIcal(event, cal) {
+    const { start, end, summary, location, description } = event;
+    cal.createEvent({
+        start: new Date(start * 1000),
+        end: new Date(end * 1000),
+        summary: summary,
+        location: location,
+        description: description,
+    });
+}
+
+function eventsToIcal(events) {
+    let cal = icalgen(VCALENDAR);
+    for (const event of events) {
+        eventToIcal(event, cal);
+    }
+    return cal.toString();
+}
+
+function parseDateToUnixTimestamp(date) {
+    if (date === undefined) {
+        return null;
+    }
+    if (Number.isNaN(Number(date)) && !Number.isNaN(new Date(date).getTime())) {
+        // ADE gives the time -1 hour, so we need to remove it from user input to match ADE timezone
+        return new Date(date).getTime() / 1000 - 3600; //* Might break during daylight saving time
+    }
+    return -1;
+}
+
 main();
 
 app.get("/", async (req, reply) => {
@@ -199,10 +229,7 @@ app.get("/id/:id", async (req, reply) => {
 
         if (format.toLowerCase() !== "json") {
             reply.header("Content-Type", "text/calendar");
-            const { start, end, summary, location, description } = data;
-            let cal = icalgen();
-            cal.createEvent({ start, end, summary, location, description });
-            return cal.toString();
+            return eventsToIcal([data]);
         }
         return data;
     } catch (error) {
@@ -223,14 +250,11 @@ app.get("/length", async (req, reply) => {
 
 // Define other routes for filtering events (start, end, location, etc.)
 app.get("/search", async (req, reply) => {
+    let { start, end, after, before } = req.query;
     const {
-        start,
-        end,
         location,
         summary,
         description,
-        after,
-        before,
         locationMatchType,
         summaryMatchType,
         descriptionMatchType,
@@ -238,9 +262,39 @@ app.get("/search", async (req, reply) => {
         format = "json",
     } = req.query;
 
+    // if (
+    //     (locationMatchType === "regex" && location?.length > 20) ||
+    //     (summaryMatchType === "regex" && summary?.length > 20) ||
+    //     (descriptionMatchType === "regex" && description?.length > 20)
+    // ) {
+    //     return reply.status(400).send({
+    //         error: "Regex too long",
+    //     });
+    // }
+
+    if (
+        (locationMatchType === "regex" && !location) ||
+        (summaryMatchType === "regex" && !summary) ||
+        (descriptionMatchType === "regex" && !description)
+    ) {
+        return reply.status(400).send({
+            error: "Regex without query",
+        });
+    }
+
     if (!["json", "ical", "ics"].includes(format.toLowerCase())) {
         return reply.status(400).send({
             error: "Invalid format",
+        });
+    }
+
+    // we handle the cases where the start, end, after, before are ISO 8601
+    [start, end, after, before] = [start, end, after, before].map(
+        parseDateToUnixTimestamp
+    );
+    if ([start, end, after, before].some((date) => date === -1)) {
+        return reply.status(400).send({
+            error: "Invalid date format, use ISO 8601 or Unix timestamp",
         });
     }
 
@@ -280,6 +334,7 @@ app.get("/search", async (req, reply) => {
                 builder.where("end", "<=", before);
             }
         });
+        //TODO: for regex, add a timeout to avoid reDOS
         if (locationMatchType === "regex") {
             data = data.filter((event) => {
                 const regex = new RegExp(location);
@@ -304,18 +359,7 @@ app.get("/search", async (req, reply) => {
         }
         if (format !== "json") {
             reply.header("Content-Type", "text/calendar");
-            const cal = icalgen(VCALENDAR);
-            for (const event of data) {
-                const { start, end, summary, location, description } = event;
-                cal.createEvent({
-                    start: new Date(start),
-                    end: new Date(end),
-                    summary: summary,
-                    location: location,
-                    description: description,
-                });
-            }
-            return cal.toString();
+            return eventsToIcal(data);
         }
         return data;
     } catch (error) {
