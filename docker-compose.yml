@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  api:
+    container_name: fds-ical-api
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3004:3000"
+    image: ${IMAGE_NAME}
