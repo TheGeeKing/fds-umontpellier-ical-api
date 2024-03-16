@@ -1,4 +1,5 @@
 import fastify from "fastify";
+import zlib from "zlib";
 import axios from "axios";
 import ical from "node-ical";
 import icalgen from "ical-generator";
@@ -30,6 +31,19 @@ const VCALENDAR = {
 };
 
 const app = fastify();
+
+// Register the compression plugin
+await app.register(import("@fastify/compress"), {
+    global: true,
+    removeContentLengthHeader: false,
+    encodings: ["gzip", "br", "deflate"], // when testing /search, gzip is ~30% faster than br
+    brotliOptions: {
+        params: {
+            // [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT, // useful for APIs that primarily return text
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 3, // default is 4, max is 11, min is 0
+        },
+    },
+});
 
 // Create a Knex instance with SQLite3 as the client
 const db = knex({
@@ -144,15 +158,24 @@ async function insertAllEventsToDatabase(responses) {
 
 async function isDatabaseEmpty() {
     // returns true if there is no table in the database file
-    return db.schema.hasTable("ical_data").then((exists) => !exists);
+    return db.schema
+        .hasTable("ical_data")
+        .then((exists) => !exists)
+        .catch((err) => {
+            console.error("Error checking if database is empty:", err);
+            return true;
+        });
 }
 // Initialize the database and sync ical data if necessary
 async function isTableEmpty() {
-    const isEmpty = await db("ical_data")
+    return await db("ical_data")
         .count("* as count")
         .first()
-        .then((row) => row.count === 0);
-    return isEmpty;
+        .then((row) => row.count === 0)
+        .catch((err) => {
+            console.error("Error checking if database is empty:", err);
+            return true;
+        });
 }
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -240,8 +263,7 @@ app.get("/id/:id", async (req, reply) => {
 
 app.get("/length", async (req, reply) => {
     try {
-        const data = await db("ical_data").count("* as count").first();
-        return data;
+        return await db("ical_data").count("* as count").first();
     } catch (error) {
         console.error("Error retrieving event by id:", error);
         reply.status(500).send({ error: "Internal Server Error" });
@@ -258,6 +280,7 @@ app.get("/search", async (req, reply) => {
         locationMatchType,
         summaryMatchType,
         descriptionMatchType,
+        raw,
         sort = false,
         format = "json",
     } = req.query;
@@ -334,6 +357,19 @@ app.get("/search", async (req, reply) => {
                 builder.where("end", "<=", before);
             }
         });
+
+        if (raw === "only" && format === "json") {
+            return data.map((event) => {
+                // return only the id and raw columns
+                return { id: event.id, raw: event.raw };
+            });
+        } else if (raw === "exclude" || format !== "json") {
+            data = data.map((event) => {
+                delete event.raw;
+                return event;
+            });
+        }
+
         //TODO: for regex, add a timeout to avoid reDOS
         if (locationMatchType === "regex") {
             data = data.filter((event) => {

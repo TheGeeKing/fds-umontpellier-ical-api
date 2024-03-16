@@ -4,6 +4,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@fastify/compress": "^7.0.0",
     "axios": "^1.6.7",
     "dotenv": "^16.4.5",
     "fastify": "^4.26.2",

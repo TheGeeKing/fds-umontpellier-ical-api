@@ -21,6 +21,7 @@ Routes are:
     - `summaryMatchType` ➜ The type of match for the summary ([`""`(use SQL, LIKE %summary%), `strict`, `regex`]; default: `""`)
   - `description` ➜ Get the courses with this description
     - `descriptionMatchType` ➜ The type of match for the description ([`""`(use SQL, LIKE %description%), `strict`, `regex`]; default: `""`)
+  - `raw` ➜ Get the raw ICal of the courses ([`""`(include it), `only`(size ~-28.5%), `exclude`(size ~-70%)]; default: `""`)
   - `format` ➜ The format of the response ([`json`, `ical`, `ics`]; default: `json`)
 - `/id/:id` ➜ Get the course with the given id
   - `format` ➜ The format of the response ([`json`, `ical`, `ics`]; default: `json`)
