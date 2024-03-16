@@ -1,4 +1,4 @@
-# FdS- UMontpellier-ICal-API
+# FdS-UMontpellier-ICal-API
 
 ## Description
 
@@ -26,8 +26,12 @@ Routes are:
   - `format` ➜ The format of the response ([`json`, `ical`, `ics`]; default: `json`)
 - `/length` ➜ Get the number of courses (1➜length; are the ids). `{"count": length}`
 
-Example of usage:
+Examples of usage: \
 `/search?location=Amphi%205.02&format=ical` ➜ Get the ICal of the courses in the Amphi 5.02 \
 `/search?start=2024-03-15T08:00:00Z` ➜ Get courses starting at 8 a.m the 2024-03-15  \
 `/search` ➜ Get the JSON of all the courses \
 `/id/1` ➜ Get the JSON of the course with the id in the database
+
+## Hosted version
+
+You can use the latest version at [https://fds-ical-api.home.mma.dev/](https://fds-ical-api.home.mma.dev/). ⚠️ Uptime is not guaranteed. Generally down between 00:00-08:15 UTC+1.
