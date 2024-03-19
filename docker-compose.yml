@@ -2,7 +2,7 @@ version: '3'
 
 services:
   api:
-    container_name: fds-ical-api
+    container_name: um-ical-api
     build: .
     restart: unless-stopped
     ports:

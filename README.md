@@ -1,8 +1,8 @@
-# FdS-UMontpellier-ICal-API
+# UMontpellier-ICal-API
 
 ## Description
 
-This repository has for goal to provide an API to get the ICal of the courses of the FdS of the University of Montpellier. For now, it only provides ICals for the Fac des Sciences 2023-2024 (open for pull requests to add other faculties).
+This repository has for goal to provide an API to get the ICal of the courses of the University of Montpellier. For now, it only provides ICals for the Fac des Sciences and Fac de Droit et Science Politique 2023-2024 (open for pull requests to add other faculties).
 
 You can either get JSON data or directly the ICal file. In JSON, you get a "raw" key to access the raw ICal event read by the API. The ICal version served does not contain some data due to the fact that ADE generates new unusefull `UID`, `SEQUENCE`, `LAST-MODIFIED` and `CREATED` each time.
 
@@ -22,6 +22,7 @@ Routes are:
   - `description` ➜ Get the courses with this description
     - `descriptionMatchType` ➜ The type of match for the description ([`""`(use SQL, LIKE %description%), `strict`, `regex`]; default: `""`)
   - `raw` ➜ Get the raw ICal of the courses ([`""`(include it), `only`(size ~-28.5%), `exclude`(size ~-70%)]; default: `""`)
+  - `sort` ➜ Get the courses sorted by start date ([`""` (not sorted), `asc`, `desc`]; default: `""`)
   - `format` ➜ The format of the response ([`json`, `ical`, `ics`]; default: `json`)
 - `/id/:id` ➜ Get the course with the given id
   - `format` ➜ The format of the response ([`json`, `ical`, `ics`]; default: `json`)
@@ -35,4 +36,4 @@ Examples of usage: \
 
 ## Hosted version
 
-You can use the latest version at [https://fds-ical-api.home.mma.dev/](https://fds-ical-api.home.mma.dev/). ⚠️ Uptime is not guaranteed. Generally down between 00:00-08:15 UTC+1.
+You can use the latest version at [https://um-ical-api.home.mma.dev/](https://um-ical-api.home.mma.dev/). ⚠️ Uptime is not guaranteed. Generally down between 00:00-08:15 UTC+1.

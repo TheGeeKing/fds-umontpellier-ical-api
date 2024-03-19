@@ -116,7 +116,8 @@ async function syncIcalData() {
         const links = fs
             .readFileSync("links.txt", "utf8")
             .split("\n")
-            .filter((link) => link.trim() !== "");
+            .filter((link) => link.trim() !== "" && !link.startsWith("#"));
+        console.info(`Syncing ${links.length} links...`);
         const time1 = new Date().getTime();
         const responses = await Promise.all(links.map((url) => axios.get(url)));
         const time2 = new Date().getTime() - time1;
@@ -281,7 +282,7 @@ app.get("/search", async (req, reply) => {
         summaryMatchType,
         descriptionMatchType,
         raw,
-        sort = false,
+        sort,
         format = "json",
     } = req.query;
 
@@ -389,9 +390,12 @@ app.get("/search", async (req, reply) => {
                 return regex.test(event.description);
             });
         }
-        if (data && sort) {
+        if (data && sort === "asc") {
             // sort by start date
             data = data.sort((a, b) => a.start - b.start);
+        } else if (data && sort === "desc") {
+            // sort by start date
+            data = data.sort((a, b) => b.start - a.start);
         }
         if (format !== "json") {
             reply.header("Content-Type", "text/calendar");
