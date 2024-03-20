@@ -330,21 +330,21 @@ app.get("/search", async (req, reply) => {
             if (end) {
                 builder.where("end", end);
             }
-            if (location) {
+            if (location && locationMatchType !== "regex") {
                 if (locationMatchType === "strict") {
                     builder.where("location", location);
                 } else {
                     builder.where("location", "like", `%${location}%`);
                 }
             }
-            if (summary) {
+            if (summary && summaryMatchType !== "regex") {
                 if (summaryMatchType === "strict") {
                     builder.where("summary", summary);
                 } else {
                     builder.where("summary", "like", `%${summary}%`);
                 }
             }
-            if (description) {
+            if (description && descriptionMatchType !== "regex") {
                 if (descriptionMatchType === "strict") {
                     builder.where("description", description);
                 } else {
