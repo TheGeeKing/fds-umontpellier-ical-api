@@ -231,7 +231,7 @@ main();
 
 app.get("/", async (req, reply) => {
     reply.header("Content-Type", "text/html; charset=utf-8");
-    return "README.md is available at <a href='https://github.com/TheGeeKing/um-umontpellier-ical-api'>https://github.com/TheGeeKing/um-umontpellier-ical-api</a>";
+    return "README.md is available at <a href='https://github.com/TheGeeKing/fds-umontpellier-ical-api'>https://github.com/TheGeeKing/fds-umontpellier-ical-api</a>";
 });
 
 // Route to get event by id
