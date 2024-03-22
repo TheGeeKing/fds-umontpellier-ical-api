@@ -1,4 +1,5 @@
 import fastify from "fastify";
+import cors from "@fastify/cors";
 import zlib from "zlib";
 import axios from "axios";
 import ical from "node-ical";
@@ -43,6 +44,10 @@ await app.register(import("@fastify/compress"), {
             [zlib.constants.BROTLI_PARAM_QUALITY]: 3, // default is 4, max is 11, min is 0
         },
     },
+});
+
+await app.register(cors, {
+    origin: "*", // allow all origins
 });
 
 // Create a Knex instance with SQLite3 as the client
